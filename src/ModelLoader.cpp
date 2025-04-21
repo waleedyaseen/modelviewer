@@ -343,6 +343,22 @@ bool ModelLoader::ConvertFromMQO(ModelData& model, MQOFile const& mqoFile)
         model.vertices.push_back(vertex);
     }
 
+    static char const* vskinNames[] { "VSKIN1:", "VSKIN2:", "VSKIN3:" };
+    for (char const* name : vskinNames) {
+        MQOObject const* vskinObject = mqoFile.FindObject(name);
+        if (vskinObject == nullptr) {
+            continue;
+        }
+        for (size_t i = 0; i < vskinObject->vertices.size(); ++i) {
+            MQOVertex const& mqoVertex = vskinObject->vertices[i];
+            Vertex& vertex = model.vertices[i];
+            if (mqoVertex.weit.has_value()) {
+                uint8_t labelOff = static_cast<uint8_t>(mqoVertex.weit.value() * 100.0f);
+                vertex.label = vertex.label.value_or(0) + labelOff;
+            }
+        }
+    }
+
     model.faces.reserve(mainObject->faces.size());
     for (MQOFace const& mqoFace : mainObject->faces) {
         Face face;

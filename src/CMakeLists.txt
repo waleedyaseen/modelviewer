@@ -1,0 +1,18 @@
+set(ROOT_SRC_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/imgui_impl_glfw.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/imgui_impl_opengl3.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ModelExporter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ModelLoader.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ModelRenderer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ModelViewer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Dialogs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/MQOFile.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/MQOParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/RunetekColor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ShaderProgram.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/UI.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/UITheme.cpp
+        PARENT_SCOPE
+)

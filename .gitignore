@@ -1,0 +1,6 @@
+cmake-build-debug/
+cmake-build-release/
+.vs/
+out/
+app.png
+.idea/

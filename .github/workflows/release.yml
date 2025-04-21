@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  build-and-package:
+    name: Build and Package
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Get version
+        id: get_version
+        run: |
+          $VERSION = "${{ github.event.release.tag_name }}"
+          echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
+
+      - name: Create Package Archive
+        run: |
+          mkdir package
+          cp build/Release/modelviewer.exe package/
+          cp imgui.ini package/
+          mkdir package/fonts
+          cp -r fonts/* package/fonts/
+          cd package
+          7z a ../modelviewer-${{ steps.get_version.outputs.VERSION }}.zip *
+
+      - name: Upload Package Archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./modelviewer-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_name: modelviewer-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_content_type: application/zip

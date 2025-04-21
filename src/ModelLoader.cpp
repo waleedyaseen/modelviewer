@@ -306,9 +306,17 @@ bool ModelLoader::ConvertFromMQO(ModelData& model, MQOFile const& mqoFile)
     model.faces.clear();
     model.textures.clear();
 
-    MQOObject const* mainObject = mqoFile.FindObject("GEOM");
+    static char const* mainObjectNames[] { "GEOM", "Model", "obj1" }; // for backward compatability
+    MQOObject const* mainObject = nullptr;
+    for (char const* name : mainObjectNames) {
+        mainObject = mqoFile.FindObject(name);
+        if (mainObject != nullptr) {
+            break;
+        }
+    }
     if (mainObject == nullptr) {
-        mainObject = mqoFile.FindObject("obj1");
+        UI::ShowErrorAlert("Invalid MQO", "No valid GEOM object found in MQO file.");
+        return false;
     }
 
     MQOObject const* tskinObject = mqoFile.FindObject("TSKIN");
@@ -322,7 +330,7 @@ bool ModelLoader::ConvertFromMQO(ModelData& model, MQOFile const& mqoFile)
     }
     model.vertices.reserve(mainObject->vertices.size());
 
-    for (auto const& mqoVertex : mainObject->vertices) {
+    for (MQOVertex const& mqoVertex : mainObject->vertices) {
         Vertex vertex;
         vertex.x = static_cast<int16_t>(mqoVertex.x);
         vertex.y = static_cast<int16_t>(-mqoVertex.y);
@@ -336,7 +344,7 @@ bool ModelLoader::ConvertFromMQO(ModelData& model, MQOFile const& mqoFile)
     }
 
     model.faces.reserve(mainObject->faces.size());
-    for (auto const& mqoFace : mainObject->faces) {
+    for (MQOFace const& mqoFace : mainObject->faces) {
         Face face;
         face.v1 = mqoFace.v1;
         face.v2 = mqoFace.v2;

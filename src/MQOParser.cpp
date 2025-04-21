@@ -2,7 +2,7 @@
 
 namespace imp {
 
-// TODO(Waleed): Check if its valid int32_teger we are parsing when we are using std::stoi
+// TODO(Waleed): Check if its valid integer we are parsing when we are using std::stoi
 
 MQOParser::MQOParser(std::filesystem::path const& filePath)
 {
@@ -33,7 +33,7 @@ bool MQOParser::Parse(MQOFile& mqoFile)
             continue;
         }
 
-        if (m_currentLine.find("Material ") == 0) {
+        if (m_currentLine.find("Material ") != std::string::npos) {
             std::vector<MQOMaterial> materials;
             if (!ParseMaterials(materials)) {
                 return false;
@@ -173,25 +173,28 @@ bool MQOParser::ParseScene(MQOScene& scene)
 
 bool MQOParser::ParseMaterials(std::vector<MQOMaterial>& materials)
 {
-    int32_t materialCount = 0;
-    size_t countPos = m_currentLine.find(' ');
-    if (countPos != std::string::npos) {
-        size_t bracePos = m_currentLine.find('{', countPos);
-        if (bracePos != std::string::npos) {
-            std::string countStr = m_currentLine.substr(countPos, bracePos - countPos);
-            materialCount = std::stoi(countStr);
-            materials.reserve(materialCount);
-        }
+    Token token;
+    if (!Expect(TokenType::IDENTIFIER, token) || token.value != "Material") {
+        return SetError("Expected 'Material' keyword");
     }
+    Token count;
+    if (!Expect(TokenType::NUMBER, count)) {
+        return SetError("Expected material count");
+    }
+    Token lbrace;
+    if (!Expect(TokenType::SYMBOL, lbrace) || !lbrace.IsSymbol('{')) {
+        return SetError("Expected opening brace for Material section");
+    }
+    int32_t materialCount = std::stoi(count.value);
+    materials.reserve(materialCount);
 
     while (NextLine()) {
         if (m_currentLine.find('}') != std::string::npos) {
             return true;
         }
 
-        MQOMaterial material;
         m_position = 0;
-        if (ParseMaterial(material)) {
+        if (MQOMaterial material; ParseMaterial(material)) {
             materials.push_back(material);
         }
     }

@@ -324,90 +324,71 @@ void ModelViewer::RenderFileExplorer()
         }
         return false;
     });
-
     for (auto it = m_rootNodes.begin(); it != m_rootNodes.end();) {
         auto& node = *it;
-
         ImGui::PushID(&node);
-
         if (!std::filesystem::exists(node.path)) {
             it = m_rootNodes.erase(it);
             m_settingsModified = true;
             ImGui::PopID();
             continue;
         }
-
         if (node.isDirectory) {
-
             ImGuiTreeNodeFlags treeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
-
             if (node.isExpanded) {
                 treeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
             }
-
             if (ImGui::TreeNodeEx(node.name.c_str(), treeFlags)) {
                 node.isExpanded = true;
                 if (!node.isScanned) {
                     ScanDirectory(node);
                 }
-
                 if (ImGui::BeginPopupContextItem()) {
                     if (ImGui::MenuItem("Remove")) {
-                        RemoveNode(node);
+                        it = m_rootNodes.erase(it);
+                        m_settingsModified = true;
                         ImGui::EndPopup();
                         ImGui::TreePop();
                         ImGui::PopID();
-                        it = m_rootNodes.erase(it);
-                        m_settingsModified = true;
                         continue;
                     }
                     ImGui::EndPopup();
                 }
-
                 DisplayNodeContents(node);
                 ImGui::TreePop();
             } else {
                 node.isExpanded = false;
-
                 if (ImGui::BeginPopupContextItem()) {
                     if (ImGui::MenuItem("Remove")) {
-                        ImGui::EndPopup();
-                        ImGui::PopID();
                         it = m_rootNodes.erase(it);
                         m_settingsModified = true;
+                        ImGui::EndPopup();
+                        ImGui::PopID();
                         continue;
                     }
                     ImGui::EndPopup();
                 }
             }
         } else {
-
             if (!m_searchQuery.empty() && node.name.find(m_searchQuery) == std::string::npos) {
                 ++it;
                 ImGui::PopID();
                 continue;
             }
-
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-
             bool isCurrentModel = (node.path == m_currentLoadedModelPath);
-
             if (isCurrentModel) {
                 ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
                 ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
                 ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImGui::GetColorU32(ImGuiCol_ButtonActive));
             }
-
             float width = ImGui::GetContentRegionAvail().x;
-
             if (ImGui::Selectable(node.name.c_str(), isCurrentModel, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(width, 0))) {
                 LoadModel(node.path);
             }
-
             if (isCurrentModel) {
                 ImGui::PopStyleColor(3);
             }
-
             if (ImGui::BeginPopupContextItem(nullptr, ImGuiPopupFlags_MouseButtonRight)) {
                 ImGui::Separator();
                 if (ImGui::MenuItem("Remove from List")) {
@@ -419,10 +400,8 @@ void ModelViewer::RenderFileExplorer()
                 }
                 ImGui::EndPopup();
             }
-
             ImGui::PopStyleVar();
         }
-
         ImGui::PopID();
         ++it;
     }
@@ -1226,16 +1205,6 @@ void ModelViewer::ClearFileExplorer()
 {
     m_rootNodes.clear();
     m_settingsModified = true;
-}
-
-void ModelViewer::RemoveNode(Node& node)
-{
-    auto const it = std::find_if(m_rootNodes.begin(), m_rootNodes.end(),
-        [&node](Node const& n) { return n.path == node.path; });
-    if (it != m_rootNodes.end()) {
-        m_rootNodes.erase(it);
-        m_settingsModified = true;
-    }
 }
 
 void ModelViewer::RenderModelStatsPanel()

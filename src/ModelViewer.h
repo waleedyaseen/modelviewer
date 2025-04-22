@@ -94,7 +94,6 @@ private:
     void ScanDirectory(Node& node);
     void DisplayNodeContents(Node& node);
     void ClearFileExplorer();
-    void RemoveNode(Node& node);
     void ShowError(std::string const& title, std::string const& message);
 
     void LoadModel(std::filesystem::path const& path);

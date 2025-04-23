@@ -15,6 +15,7 @@ include(IMGUI)
 include(GLFW)
 include(json)
 include(glm)
+include(nfd)
 
 # ============================================
 # - Setup GIT_COMMIT_HASH macro
@@ -97,12 +98,13 @@ else ()
             ${PLATFORM_FILES}
     )
 endif ()
-target_link_libraries(modelviewer PRIVATE glad glfw nlohmann_json::nlohmann_json glm::glm)
+target_link_libraries(modelviewer PRIVATE glad glfw nlohmann_json::nlohmann_json glm::glm nfd::nfd)
 target_include_directories(modelviewer PUBLIC
         ${imgui_SOURCE_DIR}
         ${glfw_SOURCE_DIR}/include
         ${json_SOURCE_DIR}/include
         ${GLM_INCLUDE_DIRS}
+        ${nfd_INCLUDE_DIRS}
         3rdParty/glm
 )
 

@@ -823,11 +823,10 @@ void ModelViewer::OpenDirectory()
 
 void ModelViewer::OpenFile()
 {
-    std::vector<std::pair<std::string, std::string>> const filters = {
+    std::vector<std::pair<std::string, std::string>> filters = {
         { "Model Files", "*.mqo;*.dat" },
         { "MQO Files", "*.mqo" },
-        { "DAT Files", "*.dat" },
-        { "All Files", "*.*" }
+        { "DAT Files", "*.dat" }
     };
 
     if (auto filePath = OpenFileDialog(filters); filePath && IsValidModelFile(*filePath)) {
@@ -836,7 +835,7 @@ void ModelViewer::OpenFile()
         fileNode.path = *filePath;
         fileNode.isDirectory = false;
 
-        auto it = std::find_if(m_rootNodes.begin(), m_rootNodes.end(),
+        auto it = std::ranges::find_if(m_rootNodes,
             [&filePath](Node const& node) { return !node.isDirectory && node.path == *filePath; });
 
         if (it == m_rootNodes.end()) {

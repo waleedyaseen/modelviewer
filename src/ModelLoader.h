@@ -13,6 +13,7 @@ public:
 private:
     static bool LoadAny(ModelData& model, Packet& packet);
     static bool LoadV1(ModelData& model, Packet& packet);
+    static bool LoadOldschoolV3(ModelData& model, Packet& packet);
     static bool LoadMQO(ModelData& model, std::filesystem::path const& filePath);
 
     static bool ConvertFromMQO(ModelData& model, MQOFile const& mqoFile);

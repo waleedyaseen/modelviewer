@@ -119,9 +119,9 @@ void ModelRenderer::UpdateBuffers(ModelData const& modelData)
         AddFaceVertices(face, vertices, static_cast<int>(i));
         AddVertexColors(r, g, b);
 
-        m_indices.push_back(indexCounter);
-        m_indices.push_back(indexCounter + 1);
         m_indices.push_back(indexCounter + 2);
+        m_indices.push_back(indexCounter + 1);
+        m_indices.push_back(indexCounter);
         indexCounter += 3;
     }
 

@@ -214,6 +214,12 @@ void Renderer::Render(float deltaTime)
     glViewport(0, 0, m_viewportWidth, m_viewportHeight);
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     m_cameraPosition.x = m_cameraTarget.x + m_cameraDistance * std::sin(m_cameraTheta) * std::cos(m_cameraPhi);
     m_cameraPosition.y = m_cameraTarget.y + m_cameraDistance * std::cos(m_cameraTheta);
     m_cameraPosition.z = m_cameraTarget.z + m_cameraDistance * std::sin(m_cameraTheta) * std::sin(m_cameraPhi);

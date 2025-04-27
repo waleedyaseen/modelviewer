@@ -18,7 +18,7 @@ bool ModelLoader::LoadAny(ModelData& model, Packet& packet)
     int8_t sig1 = packet.GetData()[packet.GetSize() - 1];
     int8_t sig2 = packet.GetData()[packet.GetSize() - 2];
     if (sig1 == -3 && sig2 == -1) {
-        return LoadOldschoolV3(model, packet);
+        return LoadV4(model, packet);
     } else if (sig1 == -1 && sig2 == -1) {
         return false;
     } else {
@@ -26,7 +26,7 @@ bool ModelLoader::LoadAny(ModelData& model, Packet& packet)
     }
 }
 
-bool ModelLoader::LoadOldschoolV3(ModelData& model, Packet& packet)
+bool ModelLoader::LoadV4(ModelData& model, Packet& packet)
 {
     if (packet.GetSize() < 26) {
         return false;

@@ -7,11 +7,14 @@
 #include <imgui.h>
 
 namespace imp {
-
 #include "shaders/InfiniteGrid.fs"
 #include "shaders/InfiniteGrid.vs"
 #include "shaders/Tile.fs"
 #include "shaders/Tile.vs"
+
+constexpr float kDefaultCameraDistance = 500.0f;
+constexpr float kDefaultCameraPhi = 0.75f;
+constexpr float kDefaultCameraTheta = 1.2f;
 
 Renderer::Renderer()
     : m_planeVAO(0)
@@ -22,9 +25,9 @@ Renderer::Renderer()
     , m_cameraPosition(0.0f, 3.0f, 3.0f)
     , m_cameraTarget(0.0f, 0.0f, 0.0f)
     , m_cameraUp(0.0f, 1.0f, 0.0f)
-    , m_cameraDistance(500.0f)
-    , m_cameraPhi(0.75f)
-    , m_cameraTheta(0.75f)
+    , m_cameraDistance(kDefaultCameraDistance)
+    , m_cameraPhi(kDefaultCameraPhi)
+    , m_cameraTheta(kDefaultCameraTheta)
     , m_viewMatrix()
     , m_projectionMatrix()
     , m_fov(60.0f)
@@ -38,20 +41,12 @@ Renderer::Renderer()
     , m_viewportWidth(0)
     , m_viewportHeight(0)
 {
+    // Do nothing.
 }
 
 Renderer::~Renderer()
 {
-    glDeleteVertexArrays(1, &m_planeVAO);
-    glDeleteBuffers(1, &m_planeVBO);
-    glDeleteBuffers(1, &m_planeEBO);
-
-    glDeleteVertexArrays(1, &m_gridVAO);
-    glDeleteBuffers(1, &m_gridVBO);
-
-    glDeleteFramebuffers(1, &m_framebuffer);
-    glDeleteTextures(1, &m_textureColorBuffer);
-    glDeleteRenderbuffers(1, &m_renderBuffer);
+    Destroy();
 }
 
 void Renderer::Initialize()
@@ -86,9 +81,45 @@ void Renderer::Initialize()
     m_viewportWidth = 1;
     m_viewportHeight = 1;
     m_aspectRatio = 1.0f;
-    m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
+    UpdateProjectionMatrix();
 
     m_modelRenderer.Initialize();
+}
+
+void Renderer::Destroy()
+{
+    if (m_planeVAO != 0) {
+        glDeleteVertexArrays(1, &m_planeVAO);
+        m_planeVAO = 0;
+    }
+    if (m_planeVBO != 0) {
+        glDeleteBuffers(1, &m_planeVBO);
+        m_planeVBO = 0;
+    }
+    if (m_planeEBO != 0) {
+        glDeleteBuffers(1, &m_planeEBO);
+        m_planeEBO = 0;
+    }
+    if (m_gridVAO != 0) {
+        glDeleteVertexArrays(1, &m_gridVAO);
+        m_gridVAO = 0;
+    }
+    if (m_gridVBO != 0) {
+        glDeleteBuffers(1, &m_gridVBO);
+        m_gridVBO = 0;
+    }
+    if (m_framebuffer != 0) {
+        glDeleteFramebuffers(1, &m_framebuffer);
+        m_framebuffer = 0;
+    }
+    if (m_textureColorBuffer != 0) {
+        glDeleteTextures(1, &m_textureColorBuffer);
+        m_textureColorBuffer = 0;
+    }
+    if (m_renderBuffer != 0) {
+        glDeleteRenderbuffers(1, &m_renderBuffer);
+        m_renderBuffer = 0;
+    }
 }
 
 void Renderer::SetupShaders()
@@ -171,7 +202,7 @@ void Renderer::SetViewportSize(int width, int height)
     m_viewportWidth = width;
     m_viewportHeight = height;
     m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
+    UpdateProjectionMatrix();
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
@@ -313,13 +344,13 @@ void Renderer::ZoomCamera(float amount)
 
 void Renderer::ResetCamera()
 {
-    m_cameraDistance = 500.0f;
-    m_cameraPhi = 0.75f;
-    m_cameraTheta = 1.2f;
+    m_cameraDistance = kDefaultCameraDistance;
+    m_cameraPhi = kDefaultCameraPhi;
+    m_cameraTheta = kDefaultCameraTheta;
     m_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     m_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
+    UpdateProjectionMatrix();
 }
 
 void Renderer::SetWireframeMode(bool enabled)
@@ -330,18 +361,23 @@ void Renderer::SetWireframeMode(bool enabled)
 void Renderer::SetFOV(float fov)
 {
     m_fov = fov;
-    m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
+    UpdateProjectionMatrix();
 }
 
 void Renderer::SetNearPlane(float nearPlane)
 {
     m_nearPlane = nearPlane;
-    m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
+    UpdateProjectionMatrix();
 }
 
 void Renderer::SetFarPlane(float farPlane)
 {
     m_farPlane = farPlane;
+    UpdateProjectionMatrix();
+}
+
+void Renderer::UpdateProjectionMatrix()
+{
     m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
 }
 }

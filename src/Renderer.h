@@ -14,6 +14,8 @@ public:
     ~Renderer();
 
     void Initialize();
+    void Destroy();
+
     void Render(float deltaTime);
 
     void SetCameraPosition(glm::vec3 const& position);
@@ -77,6 +79,7 @@ private:
     void SetupFramebuffer();
     void DrawTileGrid();
     void DrawInfiniteGrid();
+    void UpdateProjectionMatrix();
 
     ShaderProgram m_tileShaderProgram;
     ShaderProgram m_gridShaderProgram;

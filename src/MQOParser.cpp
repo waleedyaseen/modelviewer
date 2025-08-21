@@ -339,9 +339,9 @@ bool MQOParser::ParseObject(MQOObject& object)
 
 bool MQOParser::ParseVertices(std::vector<MQOVertex>& vertices)
 {
-    size_t countPos = m_currentLine.find(" ");
+    size_t countPos = m_currentLine.find(' ');
     if (countPos != std::string::npos) {
-        size_t bracePos = m_currentLine.find("{", countPos);
+        size_t bracePos = m_currentLine.find('{', countPos);
         if (bracePos != std::string::npos) {
             std::string countStr = m_currentLine.substr(countPos, bracePos - countPos);
             int32_t vertexCount = std::stoi(countStr);
@@ -365,9 +365,9 @@ bool MQOParser::ParseVertices(std::vector<MQOVertex>& vertices)
 
 bool MQOParser::ParseFaces(std::vector<MQOFace>& faces)
 {
-    size_t countPos = m_currentLine.find(" ");
+    size_t countPos = m_currentLine.find(' ');
     if (countPos != std::string::npos) {
-        size_t bracePos = m_currentLine.find("{", countPos);
+        size_t bracePos = m_currentLine.find('{', countPos);
         if (bracePos != std::string::npos) {
             std::string countStr = m_currentLine.substr(countPos, bracePos - countPos);
             int32_t faceCount = std::stoi(countStr);
@@ -428,7 +428,6 @@ bool MQOParser::ParseVertexAttr(MQOObject& object)
                     m_position++;
                     braceLevel++;
                     inWeitSection = true;
-                    continue;
                 }
             } else {
                 if (Token token = NextToken(); token.type == TokenType::IDENTIFIER) {
@@ -739,16 +738,16 @@ Token MQOParser::NextToken()
         if (c == '-') {
             value += c;
             m_position++;
-            if (m_position >= m_currentLine.length() || (!std::isdigit(static_cast<unsigned char>(m_currentLine[m_position])) && m_currentLine[m_position] != '.')) {
+            if (m_position >= m_currentLine.length() || std::isdigit(static_cast<unsigned char>(m_currentLine[m_position])) != 0 || m_currentLine[m_position] == '.') {
                 return { TokenType::SYMBOL, "-" };
             }
         }
-        while (m_position < m_currentLine.length() && std::isdigit(static_cast<unsigned char>(m_currentLine[m_position]))) {
+        while (m_position < m_currentLine.length() && std::isdigit(static_cast<unsigned char>(m_currentLine[m_position])) != 0) {
             value += m_currentLine[m_position++];
         }
         if (m_position < m_currentLine.length() && m_currentLine[m_position] == '.') {
             value += m_currentLine[m_position++];
-            while (m_position < m_currentLine.length() && std::isdigit(static_cast<unsigned char>(m_currentLine[m_position]))) {
+            while (m_position < m_currentLine.length() && std::isdigit(static_cast<unsigned char>(m_currentLine[m_position])) != 0) {
                 value += m_currentLine[m_position++];
             }
         }

@@ -65,7 +65,7 @@ MQOObject const* MQOFile::FindObject(char const* name) const
     return nullptr;
 }
 
-bool MQOFile::Write(std::filesystem::path const& outputPath)
+bool MQOFile::Write(std::filesystem::path const& outputPath) const
 {
     std::ofstream file(outputPath);
     if (!file.is_open()) {
@@ -89,7 +89,7 @@ void MQOFile::WriteHeader(std::ofstream& file)
     file << "\n";
 }
 
-void MQOFile::WriteScene(std::ofstream& file)
+void MQOFile::WriteScene(std::ofstream& file) const
 {
     file << "Scene {" << "\n";
     file << "\tpos " << m_scene.posX << " " << m_scene.posY << " " << m_scene.posZ << "\n";
@@ -102,7 +102,7 @@ void MQOFile::WriteScene(std::ofstream& file)
     file << "}" << "\n";
 }
 
-void MQOFile::WriteMaterials(std::ofstream& file)
+void MQOFile::WriteMaterials(std::ofstream& file) const
 {
     if (m_materials.empty()) {
         return;
@@ -121,7 +121,7 @@ void MQOFile::WriteMaterials(std::ofstream& file)
     file << "}" << "\n";
 }
 
-void MQOFile::WriteObjects(std::ofstream& file)
+void MQOFile::WriteObjects(std::ofstream& file) const
 {
     for (auto const& object : m_objects) {
         WriteObject(file, object);

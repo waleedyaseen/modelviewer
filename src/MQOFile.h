@@ -81,7 +81,7 @@ class MQOFile {
 public:
     MQOFile();
 
-    bool Write(std::filesystem::path const& outputPath);
+    bool Write(std::filesystem::path const& outputPath) const;
 
     void SetScene(MQOScene const& scene);
 
@@ -97,11 +97,11 @@ public:
     friend class ModelLoader;
 
 private:
-    void WriteHeader(std::ofstream& file);
-    void WriteScene(std::ofstream& file);
-    void WriteMaterials(std::ofstream& file);
-    void WriteObjects(std::ofstream& file);
-    void WriteObject(std::ofstream& file, MQOObject const& object);
+    static void WriteHeader(std::ofstream& file);
+    void WriteScene(std::ofstream& file) const;
+    void WriteMaterials(std::ofstream& file) const;
+    void WriteObjects(std::ofstream& file) const;
+    static void WriteObject(std::ofstream& file, MQOObject const& object);
 
     MQOScene m_scene;
     std::vector<MQOObject> m_objects;

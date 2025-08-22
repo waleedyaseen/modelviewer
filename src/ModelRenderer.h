@@ -3,6 +3,9 @@
 #include "Model.h"
 
 #include "ShaderProgram.h"
+#include "render/IndexBuffer.h"
+#include "render/VertexBuffer.h"
+
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -140,9 +143,9 @@ private:
     ShaderProgram m_shaderProgram;
     ShaderProgram m_pickingShaderProgram;
     uint32_t m_vao { 0 };
-    uint32_t m_vertexVBO { 0 };
-    uint32_t m_colorVBO { 0 };
-    uint32_t m_elementBuffer { 0 };
+    VertexBuffer m_vertexVBO;
+    VertexBuffer m_colorVBO;
+    IndexBuffer m_elementBuffer;
     std::vector<float> m_vertexData;
     std::vector<float> m_colorData;
     std::vector<uint32_t> m_indices;

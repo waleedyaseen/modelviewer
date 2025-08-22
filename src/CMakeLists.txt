@@ -1,6 +1,9 @@
 set(ROOT_SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/platform/imgui_impl_glfw.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/platform/imgui_impl_opengl3.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/render/IndexBuffer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/render/VertexBuffer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/render/BufferInterface.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ModelExporter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ModelLoader.cpp

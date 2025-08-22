@@ -23,9 +23,9 @@ ModelRenderer::ModelRenderer()
 ModelRenderer::~ModelRenderer()
 {
     glDeleteVertexArrays(1, &m_vao);
-    glDeleteBuffers(1, &m_vertexVBO);
-    glDeleteBuffers(1, &m_colorVBO);
-    glDeleteBuffers(1, &m_elementBuffer);
+    m_vertexVBO.Destroy();
+    m_colorVBO.Destroy();
+    m_elementBuffer.Destroy();
     glDeleteFramebuffers(1, &m_pickingFBO);
     glDeleteTextures(1, &m_pickingTexture);
     glDeleteRenderbuffers(1, &m_pickingDepthRBO);
@@ -36,10 +36,11 @@ void ModelRenderer::Initialize()
     SetupShaders();
 
     glGenVertexArrays(1, &m_vao);
-    glGenBuffers(1, &m_vertexVBO);
-    glGenBuffers(1, &m_colorVBO);
-    glGenBuffers(1, &m_elementBuffer);
-
+    constexpr uint32_t kMaxVertexCount = 65535;
+    constexpr uint32_t kMaxIndexCount = 65535;
+    m_vertexVBO.Create(kMaxVertexCount * 5 * sizeof(float), BUFFER_FLAG_DYNAMIC, nullptr);
+    m_colorVBO.Create(kMaxVertexCount * 4 * sizeof(float), BUFFER_FLAG_DYNAMIC, nullptr);
+    m_elementBuffer.Create(kMaxIndexCount * sizeof(uint32_t), BUFFER_FLAG_DYNAMIC, nullptr);
     SetupPickingFramebuffer();
 }
 
@@ -171,16 +172,16 @@ void ModelRenderer::UploadVertexData()
 {
     if (m_vao == 0) {
         glGenVertexArrays(1, &m_vao);
-        glGenBuffers(1, &m_vertexVBO);
-        glGenBuffers(1, &m_colorVBO);
-        glGenBuffers(1, &m_elementBuffer);
     }
+    m_vertexVBO.Update(0, m_vertexData.size() * sizeof(float), m_vertexData.data());
+    m_colorVBO.Update(0, m_colorData.size() * sizeof(float), m_colorData.data());
+    m_elementBuffer.Update(0, m_indices.size() * sizeof(uint32_t), m_indices.data());
 
     glBindVertexArray(m_vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
-    glBufferData(GL_ARRAY_BUFFER, m_vertexData.size() * sizeof(float), m_vertexData.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_elementBuffer.GetNativeBuffer());
 
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO.GetNativeBuffer());
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), PTR_OFFSET(0));
     glEnableVertexAttribArray(0);
 
@@ -190,16 +191,10 @@ void ModelRenderer::UploadVertexData()
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), PTR_OFFSET(4 * sizeof(float)));
     glEnableVertexAttribArray(3);
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_colorVBO);
-    glBufferData(GL_ARRAY_BUFFER, m_colorData.size() * sizeof(float), m_colorData.data(), GL_STATIC_DRAW);
-
+    glBindBuffer(GL_ARRAY_BUFFER, m_colorVBO.GetNativeBuffer());
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), PTR_OFFSET(0));
     glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(uint32_t), m_indices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
@@ -385,8 +380,6 @@ void ModelRenderer::UpdateColorData()
         AddVertexColors(r, g, b);
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_colorVBO);
-    glBufferData(GL_ARRAY_BUFFER, m_colorData.size() * sizeof(float), m_colorData.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    m_colorVBO.Update(0, m_colorData.size() * sizeof(float), m_colorData.data());
 }
 }

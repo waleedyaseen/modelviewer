@@ -104,6 +104,7 @@ private:
 
     bool m_mousePressed = false;
     bool m_mouseOverViewport { false };
+    bool m_mouseOverViewportActive { false };
     bool m_lastPressWasDrag { false };
     glm::vec2 m_prevMousePos = { 0.0f, 0.0f };
 

@@ -275,6 +275,7 @@ void ModelViewer::RenderFileExplorer()
 void ModelViewer::RenderModelViewer()
 {
     if (UI::BeginPanel("Model Viewer", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+        m_mouseOverViewportActive = ImGui::IsWindowFocused();
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 
         m_renderer.SetViewportSize(static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
@@ -288,6 +289,7 @@ void ModelViewer::RenderModelViewer()
         m_viewportX = static_cast<int>(mousePos.x - imagePos.x);
         m_viewportY = static_cast<int>(mousePos.y - imagePos.y);
         m_mouseOverViewport = mousePos.x >= imagePos.x && mousePos.x < imagePos.x + viewportSize.x && mousePos.y >= imagePos.y && mousePos.y < imagePos.y + viewportSize.y;
+        m_mouseOverViewportActive &= m_mouseOverViewport;
 
         float const buttonSize = 24.0f;
         float const padding = 4.0f;
@@ -942,7 +944,7 @@ void ModelViewer::MouseButtonCallback(GLFWwindow* window, int button, int action
 void ModelViewer::CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     auto* viewer = static_cast<ModelViewer*>(glfwGetWindowUserPointer(window));
-    if (viewer->m_mousePressed && viewer->m_mouseOverViewport) {
+    if (viewer->m_mousePressed && viewer->m_mouseOverViewportActive) {
         float deltaX = static_cast<float>(xpos) - viewer->m_prevMousePos.x;
         float deltaY = viewer->m_prevMousePos.y - static_cast<float>(ypos);
         if (deltaX != 0 || deltaY != 0) {
@@ -956,7 +958,7 @@ void ModelViewer::CursorPosCallback(GLFWwindow* window, double xpos, double ypos
 void ModelViewer::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     auto* viewer = static_cast<ModelViewer*>(glfwGetWindowUserPointer(window));
-    if (viewer->m_mouseOverViewport) {
+    if (viewer->m_mouseOverViewportActive) {
         viewer->m_renderer.ZoomCamera(-static_cast<float>(yoffset) * 300.0f * viewer->m_deltaTime);
     }
 }

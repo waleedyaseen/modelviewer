@@ -57,6 +57,11 @@ elseif (APPLE)
 endif ()
 add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_CUSTOM=1)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(IMP_DEBUG)
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_definitions(IMP_RELEASE)
+endif ()
 # =======================================================
 # - Setup Dear ImGui source files to be part of the build
 # =======================================================

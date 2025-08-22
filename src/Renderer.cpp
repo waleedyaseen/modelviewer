@@ -271,6 +271,7 @@ void Renderer::DrawTileGrid()
         return;
     }
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDisable(GL_CULL_FACE);
     m_tileShaderProgram.Bind();
 
     m_tileShaderProgram.SetUniform("uViewMatrix", m_viewMatrix);
@@ -294,6 +295,7 @@ void Renderer::DrawTileGrid()
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_planeIndices.size()), GL_UNSIGNED_INT, nullptr);
     }
     glBindVertexArray(0);
+    glEnable(GL_CULL_FACE);
 }
 
 void Renderer::DrawInfiniteGrid()
@@ -301,6 +303,7 @@ void Renderer::DrawInfiniteGrid()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
 
     m_gridShaderProgram.Bind();
     m_gridShaderProgram.SetUniform("uViewMatrix", m_viewMatrix);
@@ -314,6 +317,7 @@ void Renderer::DrawInfiniteGrid()
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glBindVertexArray(0);
 
+    glEnable(GL_CULL_FACE);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
 }

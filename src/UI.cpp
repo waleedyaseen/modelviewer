@@ -31,8 +31,6 @@ void UI::Initialize()
 
     float fontSize = Scale(15.0f);
     io.FontDefault = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", fontSize);
-    io.Fonts->Build();
-
     s_initialized = true;
 }
 

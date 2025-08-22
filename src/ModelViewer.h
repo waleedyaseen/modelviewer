@@ -102,7 +102,8 @@ private:
     float m_lastFrameTime { 0.0f };
     float m_deltaTime { 0.0f };
 
-    bool m_mousePressed = false;
+    bool m_leftMousePressed { false };
+    bool m_middleMousePressed { false };
     bool m_mouseOverViewport { false };
     bool m_mouseOverViewportActive { false };
     bool m_lastPressWasDrag { false };

@@ -336,6 +336,17 @@ void Renderer::OrbitCamera(float deltaX, float deltaY)
     m_cameraTheta = glm::clamp(m_cameraTheta, 0.1f, 3.0f);
 }
 
+void Renderer::PanCamera(float deltaX, float deltaY)
+{
+    glm::vec3 forward = glm::normalize(m_cameraTarget - m_cameraPosition);
+    glm::vec3 right = glm::normalize(glm::cross(forward, m_cameraUp));
+    glm::vec3 up = glm::normalize(glm::cross(right, forward));
+
+    float panSpeed = m_cameraDistance * 0.002f;
+
+    m_cameraTarget += (-right * deltaX * panSpeed) + (up * -deltaY * panSpeed);
+}
+
 void Renderer::ZoomCamera(float amount)
 {
     m_cameraDistance += amount;

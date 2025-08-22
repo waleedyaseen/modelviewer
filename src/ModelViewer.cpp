@@ -930,29 +930,33 @@ void ModelViewer::MouseButtonCallback(GLFWwindow* window, int button, int action
     auto* modelViewer = static_cast<ModelViewer*>(glfwGetWindowUserPointer(window));
 
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        modelViewer->m_mousePressed = (action == GLFW_PRESS);
-        if (modelViewer->m_mousePressed) {
+        modelViewer->m_leftMousePressed = (action == GLFW_PRESS);
+        if (modelViewer->m_leftMousePressed) {
             modelViewer->m_lastPressWasDrag = false;
             double xpos;
             double ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
             modelViewer->m_prevMousePos = { static_cast<float>(xpos), static_cast<float>(ypos) };
         }
+    } else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        modelViewer->m_middleMousePressed = (action == GLFW_PRESS);
     }
 }
 
 void ModelViewer::CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     auto* viewer = static_cast<ModelViewer*>(glfwGetWindowUserPointer(window));
-    if (viewer->m_mousePressed && viewer->m_mouseOverViewportActive) {
-        float deltaX = static_cast<float>(xpos) - viewer->m_prevMousePos.x;
-        float deltaY = viewer->m_prevMousePos.y - static_cast<float>(ypos);
+    float deltaX = static_cast<float>(xpos) - viewer->m_prevMousePos.x;
+    float deltaY = viewer->m_prevMousePos.y - static_cast<float>(ypos);
+    if (viewer->m_leftMousePressed && viewer->m_mouseOverViewportActive) {
         if (deltaX != 0 || deltaY != 0) {
             viewer->m_lastPressWasDrag = true;
         }
         viewer->m_renderer.OrbitCamera(deltaX, deltaY);
-        viewer->m_prevMousePos = { static_cast<float>(xpos), static_cast<float>(ypos) };
+    } else if (viewer->m_middleMousePressed) {
+        viewer->m_renderer.PanCamera(deltaX, deltaY);
     }
+    viewer->m_prevMousePos = { static_cast<float>(xpos), static_cast<float>(ypos) };
 }
 
 void ModelViewer::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)

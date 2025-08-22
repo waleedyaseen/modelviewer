@@ -20,6 +20,7 @@ public:
 
     void SetCameraPosition(glm::vec3 const& position);
     void OrbitCamera(float deltaX, float deltaY);
+    void PanCamera(float deltaX, float deltaY);
     void ZoomCamera(float amount);
     void ResetCamera();
 

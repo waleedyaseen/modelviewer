@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FileExplorer.h"
 #include "Renderer.h"
 
 #include <filesystem>
@@ -15,14 +16,6 @@ namespace imp {
 enum class ExportFormat {
     MQO,
     DAT
-};
-struct Node {
-    std::string name;
-    std::filesystem::path path;
-    bool isExpanded { true };
-    bool isScanned { false };
-    std::vector<Node> children;
-    bool isDirectory { false };
 };
 
 struct ApplicationSettings {
@@ -64,6 +57,8 @@ public:
 
     void Start();
 
+    friend class FileExplorer;
+
 private:
     void Logic(float deltaTime);
     void Draw(float deltaTime);
@@ -91,9 +86,6 @@ private:
     void OpenDirectory();
     void OpenFile();
     bool IsValidModelFile(std::filesystem::path const& path) const;
-    void ScanDirectory(Node& node);
-    void DisplayNodeContents(Node& node);
-    void ClearFileExplorer();
     void ShowError(std::string const& title, std::string const& message);
 
     void LoadModel(std::filesystem::path const& path);
@@ -119,12 +111,8 @@ private:
     int m_viewportY { 0 };
 
     ImGuiID m_centralID;
-    char m_searchBuffer[256] { "" };
-    std::string m_searchQuery;
-    bool m_focusSearchNextFrame { false };
     std::string m_errorTitle;
     std::string m_errorMessage;
-    std::vector<Node> m_rootNodes;
 
     Renderer m_renderer;
     std::filesystem::path m_currentLoadedModelPath;
@@ -133,5 +121,7 @@ private:
 
     ApplicationSettings m_settings;
     bool m_settingsModified { false };
+
+    FileExplorer m_fileExplorer { *this };
 };
 }

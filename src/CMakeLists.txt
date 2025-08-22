@@ -7,6 +7,7 @@ set(ROOT_SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ModelRenderer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ModelViewer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Dialogs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/FileExplorer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/MQOFile.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/MQOParser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.cpp

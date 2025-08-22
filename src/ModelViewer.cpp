@@ -269,143 +269,7 @@ void ModelViewer::RenderMenuBar()
 
 void ModelViewer::RenderFileExplorer()
 {
-    ImGui::Begin("File Explorer");
-
-    float const searchWidth = ImGui::GetContentRegionAvail().x;
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(28, 6));
-
-    ImGui::PushStyleColor(ImGuiCol_TextDisabled, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-    ImGui::SetNextItemWidth(searchWidth);
-
-    if (m_focusSearchNextFrame) {
-        m_focusSearchNextFrame = false;
-        ImGui::SetKeyboardFocusHere();
-    }
-    bool const searchChanged = ImGui::InputTextWithHint("##search", "Search files...", m_searchBuffer, sizeof(m_searchBuffer));
-
-    ImVec2 iconPos = ImGui::GetItemRectMin();
-    iconPos.x += 8.0f;
-    iconPos.y += ImGui::GetItemRectSize().y * 0.5f - 6.0f;
-
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    constexpr float iconSize = 12.0f;
-    ImU32 iconColor = ImGui::GetColorU32(ImGuiCol_TextDisabled);
-
-    drawList->AddCircle(
-        ImVec2(iconPos.x + iconSize * 0.4f, iconPos.y + iconSize * 0.4f),
-        iconSize * 0.4f,
-        iconColor,
-        8,
-        1.5f);
-
-    drawList->AddLine(
-        ImVec2(iconPos.x + iconSize * 0.7f, iconPos.y + iconSize * 0.7f),
-        ImVec2(iconPos.x + iconSize * 1.0f, iconPos.y + iconSize * 1.0f),
-        iconColor,
-        1.5f);
-
-    if (searchChanged) {
-        m_searchQuery = m_searchBuffer;
-    }
-
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar();
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    std::ranges::sort(m_rootNodes, [](Node const& a, Node const& b) {
-        if (a.isDirectory != b.isDirectory) {
-            return a.isDirectory > b.isDirectory;
-        }
-        if (a.name != b.name) {
-            return a.name < b.name;
-        }
-        return false;
-    });
-    for (auto it = m_rootNodes.begin(); it != m_rootNodes.end();) {
-        auto& node = *it;
-        ImGui::PushID(&node);
-        if (!std::filesystem::exists(node.path)) {
-            it = m_rootNodes.erase(it);
-            m_settingsModified = true;
-            ImGui::PopID();
-            continue;
-        }
-        if (node.isDirectory) {
-            ImGuiTreeNodeFlags treeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
-            if (node.isExpanded) {
-                treeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
-            }
-            if (ImGui::TreeNodeEx(node.name.c_str(), treeFlags)) {
-                node.isExpanded = true;
-                if (!node.isScanned) {
-                    ScanDirectory(node);
-                }
-                if (ImGui::BeginPopupContextItem()) {
-                    if (ImGui::MenuItem("Remove")) {
-                        it = m_rootNodes.erase(it);
-                        m_settingsModified = true;
-                        ImGui::EndPopup();
-                        ImGui::TreePop();
-                        ImGui::PopID();
-                        continue;
-                    }
-                    ImGui::EndPopup();
-                }
-                DisplayNodeContents(node);
-                ImGui::TreePop();
-            } else {
-                node.isExpanded = false;
-                if (ImGui::BeginPopupContextItem()) {
-                    if (ImGui::MenuItem("Remove")) {
-                        it = m_rootNodes.erase(it);
-                        m_settingsModified = true;
-                        ImGui::EndPopup();
-                        ImGui::PopID();
-                        continue;
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-        } else {
-            if (!m_searchQuery.empty() && node.name.find(m_searchQuery) == std::string::npos) {
-                ++it;
-                ImGui::PopID();
-                continue;
-            }
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-            bool isCurrentModel = (node.path == m_currentLoadedModelPath);
-            if (isCurrentModel) {
-                ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImGui::GetColorU32(ImGuiCol_ButtonActive));
-            }
-            float width = ImGui::GetContentRegionAvail().x;
-            if (ImGui::Selectable(node.name.c_str(), isCurrentModel, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(width, 0))) {
-                LoadModel(node.path);
-            }
-            if (isCurrentModel) {
-                ImGui::PopStyleColor(3);
-            }
-            if (ImGui::BeginPopupContextItem(nullptr, ImGuiPopupFlags_MouseButtonRight)) {
-                ImGui::Separator();
-                if (ImGui::MenuItem("Remove from List")) {
-                    it = m_rootNodes.erase(it);
-                    ImGui::EndPopup();
-                    ImGui::PopID();
-                    ImGui::PopStyleVar();
-                    continue;
-                }
-                ImGui::EndPopup();
-            }
-            ImGui::PopStyleVar();
-        }
-        ImGui::PopID();
-        ++it;
-    }
-    ImGui::End();
+    m_fileExplorer.Render();
 }
 
 void ModelViewer::RenderModelViewer()
@@ -762,7 +626,7 @@ void ModelViewer::HandleShortcuts()
         } else if (ImGui::IsKeyPressed(ImGuiKey_D, false)) {
             OpenDirectory();
         } else if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
-            m_focusSearchNextFrame = true;
+            m_fileExplorer.m_focusSearchNextFrame = true;
             return;
         }
     }
@@ -801,22 +665,22 @@ void ModelViewer::HandleShortcuts()
 
 void ModelViewer::OpenDirectory()
 {
-    auto directoryPath = OpenDirectoryDialog();
-    if (directoryPath) {
-        Node node;
-        node.name = directoryPath->filename().string();
-        node.path = *directoryPath;
-        node.isDirectory = true;
-        node.isExpanded = true;
-        node.isScanned = false;
-
-        auto it = std::find_if(m_rootNodes.begin(), m_rootNodes.end(),
-            [&](Node const& n) { return n.path == *directoryPath; });
-
-        if (it == m_rootNodes.end()) {
-            m_rootNodes.push_back(node);
+    if (auto directoryPath = OpenDirectoryDialog()) {
+        FileNode node {
+            .name = directoryPath->filename().string(),
+            .path = *directoryPath,
+            .isDirectory = true,
+            .isExpanded = true,
+            .isScanned = false
+        };
+        auto const it = std::ranges::find_if(m_fileExplorer.m_rootNodes, [&](FileNode const& n) {
+            return n.path == *directoryPath;
+        });
+        if (it == m_fileExplorer.m_rootNodes.end()) {
+            m_fileExplorer.m_rootNodes.push_back(std::move(node));
             m_settings.files.push_back(*directoryPath);
             m_settingsModified = true;
+            m_fileExplorer.m_dirty = true;
         }
     }
 }
@@ -829,21 +693,21 @@ void ModelViewer::OpenFile()
         { "DAT Files", "*.dat" }
     };
 
-    if (auto filePath = OpenFileDialog(filters); filePath && IsValidModelFile(*filePath)) {
-        Node fileNode;
+    if (auto const filePath = OpenFileDialog(filters); filePath && IsValidModelFile(*filePath)) {
+        FileNode fileNode;
         fileNode.name = filePath->filename().string();
         fileNode.path = *filePath;
         fileNode.isDirectory = false;
 
-        auto it = std::ranges::find_if(m_rootNodes,
-            [&filePath](Node const& node) { return !node.isDirectory && node.path == *filePath; });
-
-        if (it == m_rootNodes.end()) {
-            m_rootNodes.push_back(fileNode);
+        auto it = std::ranges::find_if(m_fileExplorer.m_rootNodes, [&](FileNode const& node) {
+            return !node.isDirectory && node.path == *filePath;
+        });
+        if (it == m_fileExplorer.m_rootNodes.end()) {
+            m_fileExplorer.m_rootNodes.push_back(std::move(fileNode));
             m_settings.files.push_back(*filePath);
             m_settingsModified = true;
+            m_fileExplorer.m_dirty = true;
         }
-
         LoadModel(*filePath);
     } else if (filePath) {
         ShowError("Invalid File", "The selected file is not a supported model format.");
@@ -855,111 +719,6 @@ bool ModelViewer::IsValidModelFile(std::filesystem::path const& path) const
     std::string extension = path.extension().string();
     std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
     return extension == ".mqo" || extension == ".dat";
-}
-
-void ModelViewer::ScanDirectory(Node& node)
-{
-    if (!node.isDirectory) {
-    }
-
-    if (!m_scanFuture.valid() || m_scanFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        m_scanFuture = std::async(std::launch::async, [this, &node]() {
-            std::vector<Node> children;
-
-            try {
-                for (auto const& entry : std::filesystem::directory_iterator(node.path)) {
-                    if (std::filesystem::is_regular_file(entry.path()) && IsValidModelFile(entry.path())) {
-                        Node fileNode;
-                        fileNode.name = entry.path().filename().string();
-                        fileNode.path = entry.path();
-                        fileNode.isDirectory = false;
-                        children.push_back(fileNode);
-                    }
-                }
-
-                node.children = children;
-                node.isScanned = true;
-            } catch (std::exception const& e) {
-                std::string errorMsg = std::string("Failed to scan directory: ") + e.what();
-                std::thread([this, errorMsg]() {
-                    ShowError("Directory Scan Error", errorMsg);
-                }).detach();
-            }
-        });
-    }
-}
-
-void ModelViewer::DisplayNodeContents(Node& node)
-{
-    if (!node.isDirectory) {
-    }
-
-    ImGui::PushItemWidth(-1);
-
-    if (!node.isScanned) {
-        ImGui::TextDisabled("Scanning directory...");
-        ImGui::PopItemWidth();
-        return;
-    }
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 4));
-
-    std::ranges::sort(node.children,
-        [](Node const& a, Node const& b) {
-            return a.name < b.name;
-        });
-
-    for (auto it = node.children.begin(); it != node.children.end();) {
-        auto& child = *it;
-
-        if (!std::filesystem::exists(child.path)) {
-            it = node.children.erase(it);
-            continue;
-        }
-
-        if (!m_searchQuery.empty() && child.name.find(m_searchQuery) == std::string::npos) {
-            ++it;
-            continue;
-        }
-
-        std::string filename = child.name;
-        ImGui::PushID(child.path.string().c_str());
-
-        float width = ImGui::GetContentRegionAvail().x;
-
-        bool isCurrentModel = (child.path == m_currentLoadedModelPath);
-
-        if (isCurrentModel) {
-            ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
-            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
-            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImGui::GetColorU32(ImGuiCol_ButtonActive));
-        }
-
-        if (ImGui::Selectable(filename.c_str(), isCurrentModel, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(width, 0))) {
-            LoadModel(child.path);
-        }
-
-        if (isCurrentModel) {
-            ImGui::PopStyleColor(3);
-        }
-
-        if (ImGui::BeginPopupContextItem(nullptr, ImGuiPopupFlags_MouseButtonRight)) {
-            if (ImGui::MenuItem("Remove")) {
-                it = node.children.erase(it);
-                ImGui::EndPopup();
-                ImGui::PopID();
-                continue;
-            }
-            ImGui::EndPopup();
-        }
-
-        ImGui::PopID();
-        ++it;
-    }
-
-    ImGui::PopStyleVar(2);
-    ImGui::PopItemWidth();
 }
 
 void ModelViewer::ShowError(std::string const& title, std::string const& message)
@@ -1069,13 +828,15 @@ void ModelViewer::LoadSettings()
                 if (!std::filesystem::exists(filePath)) {
                     continue;
                 }
-                Node node;
-                node.name = filePath.filename().string();
-                node.path = filePath;
-                node.isDirectory = std::filesystem::is_directory(filePath);
-                node.isExpanded = node.isDirectory;
-                node.isScanned = false;
-                m_rootNodes.push_back(node);
+                FileNode node {
+                    .name = filePath.filename().string(),
+                    .path = filePath,
+                    .isDirectory = std::filesystem::is_directory(filePath),
+                    .isExpanded = node.isDirectory,
+                    .isScanned = false,
+                };
+                m_fileExplorer.m_rootNodes.push_back(node);
+                m_fileExplorer.m_dirty = true;
                 m_settings.files.push_back(filePath);
             }
         }
@@ -1147,7 +908,7 @@ void ModelViewer::SaveSettings()
 
         nlohmann::json fileArray = nlohmann::json::array();
 
-        for (auto& node : m_rootNodes) {
+        for (auto const& node : m_fileExplorer.m_rootNodes) {
             fileArray.push_back(node.path.string());
         }
 
@@ -1198,12 +959,6 @@ void ModelViewer::ScrollCallback(GLFWwindow* window, double xoffset, double yoff
     if (viewer->m_mouseOverViewport) {
         viewer->m_renderer.ZoomCamera(-static_cast<float>(yoffset) * 300.0f * viewer->m_deltaTime);
     }
-}
-
-void ModelViewer::ClearFileExplorer()
-{
-    m_rootNodes.clear();
-    m_settingsModified = true;
 }
 
 void ModelViewer::RenderModelStatsPanel()
